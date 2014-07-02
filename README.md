@@ -5,7 +5,7 @@ The official Python client for the [Appurify](http://www.appurify.com) API.
 ### Installation
 
 ```
-pip install appurify-0.2.9.tar.gz
+pip install appurify-0.5.0.tar.gz
 ```
 
 This will install any missing dependencies and add two executable scripts to your bin folder:
@@ -75,6 +75,9 @@ To facilitate error reporting, the client will report one of the following error
 Found a bug or want to add a much needed feature? Go for it and send us the Pull Request!
 
 ## Release Notes
+
+### 0.5.0
+- Loosen dependency requirements so that future versions of required modules are supported
 
 ### 0.4.9
 - User-abort now handled smoothly if run has not been uploaded to server and runID not generated.  

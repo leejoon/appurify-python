@@ -72,7 +72,7 @@ class AppurifyClient(object):
         for device in data_device_list["response"]:
             device_id_list.append( device["device_type_id"])
 
-        if response_device_list.status_code == 200:
+        if response_device_list.status_code == 200 and self.device_type_id:
             listOfDevices = self.device_type_id.split(',')
             for d in listOfDevices:
                 if int(d) not in device_id_list :
@@ -80,7 +80,8 @@ class AppurifyClient(object):
 
     def checkAppCompatibility(self, app_src):
         response_device_list = devices_list(self.access_token)
-        data_device_list = json.loads(response_device_list.text.replace("'","\"")) 
+        data_device_list = json.loads(response_device_list.text.replace("'","\""))
+
         reservingDevice = -1
         
         for device in data_device_list["response"]:
@@ -94,9 +95,7 @@ class AppurifyClient(object):
                     devicePlatform = reservingDevice["os_name"].lower()
                     appType = app_src[-3:]
                     if (appType == "ipa" and devicePlatform == "android") or (appType == "apk" and devicePlatform == "ios"):
-                         raise AppurifyClientError("Must install .ipa on iOS device or .apk on android device.  Mismatch: %s installing onto an %s device: %s" % (appType, devicePlatform, d), exit_code=constants.EXIT_CODE_APP_INCOMPATIBLE)
-        
-        
+                        raise AppurifyClientError("Must install .ipa on iOS device or .apk on android device.  Mismatch: %s installing onto an %s device: %s" % (appType, devicePlatform, d), exit_code=constants.EXIT_CODE_APP_INCOMPATIBLE)
 
     def uploadApp(self):
         log('uploading app file...')
@@ -287,13 +286,16 @@ class AppurifyClient(object):
                     exception_code = exception.split(":")[0]
                     for key in constants.EXIT_CODE_EXCEPTION_MAP:
                         try:
-                            #if exception code cannot pasre into int, means server didn't send correctly.
-                            if int(exception_code) in constants.EXIT_CODE_EXCEPTION_MAP[key]:
-                                return key
-                        except Exception: 
-                            exit_code = constants.EXIT_CODE_OTHER_EXCEPTION
-        finally:
-            return exit_code
+                            exception_code = int(exception_code)
+                        except Exception:
+                            #if exception code cannot parse into int, means server didn't send correctly.
+                            return  constants.EXIT_CODE_OTHER_EXCEPTION
+                        if exception_code in constants.EXIT_CODE_EXCEPTION_MAP[key]:
+                            return key
+                    return constants.EXIT_CODE_OTHER_EXCEPTION
+        except:
+            constants.EXIT_CODE_OTHER_EXCEPTION
+        return exit_code
 
     @staticmethod
     def print_single_test_response(test_response):
