@@ -294,7 +294,7 @@ class AppurifyClient(object):
                             return key
                     return constants.EXIT_CODE_OTHER_EXCEPTION
         except:
-            constants.EXIT_CODE_OTHER_EXCEPTION
+            return constants.EXIT_CODE_OTHER_EXCEPTION
         return exit_code
 
     @staticmethod
