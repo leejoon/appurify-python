@@ -11,7 +11,7 @@
 # Current development version
 # Increment this during development as and when desired
 # setup.py will use this version to generate new releases
-VERSION = (0, 4, 9)
+VERSION = (0, 5, 0)
 __version__ = '.'.join(map(str, VERSION[0:3])) + ''.join(VERSION[3:])
 
 # Last tagged stable version
@@ -43,6 +43,8 @@ API_WAIT_FOR_SERVICE = 1        # should client wait for service to come back li
 API_STATUS_BASE_URL = 'https://s3-us-west-1.amazonaws.com/appurify-api-status'
 
 MAX_DOWNLOAD_RETRIES = 10           # Number of times client should try to download the test results before giving up
+
+DEFAULT_TIMEOUT = 3600              # default timeout if one cant be obtained from platform
 
 # Exit codes
 EXIT_CODE_ALL_PASS = 0              # Test completed with no exceptions or errors

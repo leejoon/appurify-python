@@ -178,7 +178,7 @@ class AppurifyClient(object):
                 except:
                     configs = []
 
-            return (test_run_id, test_response['queue_timeout_limit'] if 'queue_timeout_limit' in test_response else self.timeout, configs)
+            return (test_run_id, test_response['queue_timeout_limit'] if 'queue_timeout_limit' in test_response else constants.DEFAULT_TIMEOUT, configs)
         else:
             raise AppurifyClientError('runTest failed scheduling test with response %s' % r.text, exit_code=constants.EXIT_CODE_OTHER_EXCEPTION)
 
