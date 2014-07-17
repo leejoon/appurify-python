@@ -17,7 +17,7 @@ import json
 import mock
 import os
 from appurify.client import AppurifyClient, AppurifyClientError
-
+from appurify.constants import EXIT_CODE_APP_INSTALL_FAILED, EXIT_CODE_CLIENT_EXCEPTION, EXIT_CODE_OTHER_EXCEPTION
 class TestObject(object):
     pass
 
@@ -337,6 +337,10 @@ def mockRequestGet(url, params, verify=False, headers={'User-Agent': 'MockUserAg
                                                 "test_run_id": "test_test_run_id", 
                                                 "device_type": "58 - iPhone 5_NR / iOS 6.1.2", 
                                                 "device_type_id": 58}})
+    elif 'devices/list' in url:
+        return mockRequestObj({"meta": {"code": 200},
+                                "response": [{"device_type_id": 137, "name": "5", "battery":False, "brand": "iPhone", "os_name": "iOS", "os_version": "7.0.4", "has_available_device":True, "available_devices_count": 1, "busy_devices_count": 0, "all_devices_count": 1, "is_rooted":False, "is_api":True, "is_manual":False, "device_family": "ios"}, 
+                                             {"device_type_id": 223, "name": "G Flex", "battery":False, "brand": "LG", "os_name": "Android", "os_version": "4.2.2", "has_available_device":True, "available_devices_count": 1, "busy_devices_count": 0, "all_devices_count": 1, "is_rooted":False, "is_api":True, "is_manual":False, "device_family": "android"}]})
 mockRequestGet.count = 0
 mockRequestGet.passes = 1
 mockRequestGet.fails = 1
@@ -378,8 +382,9 @@ class TestUpload(unittest.TestCase):
         self.assertEqual(app_id, "test_app_id", "Should properly fetch web robot for app id")
 
     @mock.patch("requests.post", mockRequestPost)
+    @mock.patch("requests.get", mockRequestGet)
     def testUploadAppSource(self):
-        client = AppurifyClient(access_token="authenticated", app_src=__file__, app_src_type='raw', test_type='calabash', name="test_name")
+        client = AppurifyClient(access_token="authenticated", app_src=__file__, app_src_type='raw', test_type='calabash', name="test_name", device_type_id="137")
         app_id = client.uploadApp()
         self.assertEqual(app_id, "test_app_id", "Should properly fetch web robot for app id")
 
@@ -467,9 +472,9 @@ class TestRun(unittest.TestCase):
         client = AppurifyClient(api_key="test_key", api_secret="test_secret", test_type="uiautomation", 
                                 app_src=__file__, app_src_type='raw', 
                                 test_src=__file__, test_src_type='raw',
-                                timeout_sec=2, poll_every=0.1)
+                                timeout_sec=2, poll_every=0.1, device_type_id="137")
         result_code = client.main()
-        self.assertEqual(result_code, 7, "Main should execute and return exception code")
+        self.assertEqual(result_code, EXIT_CODE_OTHER_EXCEPTION, "Main should execute and return exception code")
 
     @mock.patch("requests.post", mockRequestPost)
     @mock.patch("requests.get", mockRequestGet)
@@ -482,7 +487,7 @@ class TestRun(unittest.TestCase):
         client = AppurifyClient(api_key="test_key", api_secret="test_secret", test_type="uiautomation", 
                                 app_src=__file__, app_src_type='raw', 
                                 test_src=__file__, test_src_type='raw',
-                                timeout_sec=2, poll_every=0.1)
+                                timeout_sec=2, poll_every=0.1, device_type_id="137")
         result_code = client.main()
         self.assertEqual(result_code, 1, "Main should execute and return fail code")
 
@@ -497,7 +502,7 @@ class TestRun(unittest.TestCase):
         client = AppurifyClient(api_key="test_key", api_secret="test_secret", test_type="uiautomation", 
                                 app_src=__file__, app_src_type='raw', 
                                 test_src=__file__, test_src_type='raw',
-                                timeout_sec=2, poll_every=0.1)
+                                timeout_sec=2, poll_every=0.1, device_type_id="137")
         result_code = client.main()
         self.assertEqual(result_code, 0, "Main should execute and return pass code")
 
@@ -513,7 +518,7 @@ class TestRun(unittest.TestCase):
                                 app_src=None, 
                                 test_src=None,
                                 url="www.yahoo.com",
-                                timeout_sec=2, poll_every=0.1)
+                                timeout_sec=2, poll_every=0.1, device_type_id="137")
         result_code = client.main()
         self.assertEqual(result_code, 0, "Main should execute and return pass code")
 
@@ -541,7 +546,8 @@ class TestRun(unittest.TestCase):
                             app_src=None, 
                             test_src=None,
                             url="www.yahoo.com",
-                            poll_every=0.1)
+                            poll_every=0.1,
+                            device_type_id="137")
             result_code = client.main()
             self.assertEqual(result_code, 3, "Main should execute and return error code with default timeout")
         finally:
@@ -551,7 +557,7 @@ class TestRun(unittest.TestCase):
     @mock.patch("requests.get", mockRequestGet)
     def testPollTimeout(self):
         mockRequestGet.count = -20
-        client = AppurifyClient(access_token="authenticated", timeout_sec=0.2, poll_every=0.1)
+        client = AppurifyClient(access_token="authenticated", timeout_sec=0.2, poll_every=0.1, device_type_id="137")
         with self.assertRaises(AppurifyClientError):
             client.pollTestResult("test_test_run_id", 0.2)
 
@@ -564,7 +570,8 @@ class TestRun(unittest.TestCase):
             test_src=None,
             url="www.yahoo.com",
             timeout_sec=0.2,
-            poll_every=0.1)
+            poll_every=0.1,
+            device_type_id="137")
         result_code = client.main()
         self.assertEqual(result_code, 3, "Main should execute and return error code")
 
@@ -572,6 +579,7 @@ class TestRun(unittest.TestCase):
     @mock.patch("requests.get", mockRequestGet)
     def testGetExceptionExitCode(self):
         mockRequestGet.count = -20
-        client = AppurifyClient(access_token="authenticated", timeout_sec=0.2, poll_every=0.1)
-        self.assertEqual(client.getExceptionExitCode([{"exception": "4007: Error installing the app: file does not contain AndroidManifest.xml\n (1)"}]), 5, "Should return correct exit code for matching exception")
-        self.assertEqual(client.getExceptionExitCode([{"exception": "-9999: no match anything"}]), 7, "Should return correct exit code for no exception")
+        
+        client = AppurifyClient(access_token="authenticated", timeout_sec=0.2, poll_every=0.1, device_type_id="137")
+        self.assertEqual(client.getExceptionExitCode([{"exception": "4007: Error installing the app: file does not contain AndroidManifest.xml\n (1)"}]), EXIT_CODE_APP_INSTALL_FAILED, "Should return correct exit code for matching exception")
+        self.assertEqual(client.getExceptionExitCode([{"exception": "-9999: no match anything"}]), EXIT_CODE_OTHER_EXCEPTION, "Should return correct exit code for no exception")
