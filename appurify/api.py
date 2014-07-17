@@ -14,10 +14,12 @@ from .utils import get, post
 ## Access Token API
 ####################
 
-def access_token_generate(api_key, api_secret, access_token_tag=None):
+def access_token_generate(api_key, api_secret, team=None, access_token_tag=None):
     """Generate an access token, given an api key and secret"""
     data = {'key': api_key, 'secret': api_secret}
     if type(access_token_tag) == list: data['tags'] = access_token_tag
+    if team:
+        data['team'] = team
     return post('access_token/generate', data)
 
 def access_token_list(api_key, api_secret, page_no=1, page_size=10):
