@@ -44,6 +44,8 @@ API_STATUS_BASE_URL = 'https://s3-us-west-1.amazonaws.com/appurify-api-status'
 
 MAX_DOWNLOAD_RETRIES = 10           # Number of times client should try to download the test results before giving up
 
+DEFAULT_TIMEOUT = 3600              # default timeout if one cant be obtained from platform
+
 # Exit codes
 EXIT_CODE_ALL_PASS = 0              # Test completed with no exceptions or errors
 EXIT_CODE_TEST_FAILURE = 1          # Test completed normally but reported test failures
