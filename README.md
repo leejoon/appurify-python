@@ -23,25 +23,6 @@ appurify-client.py --api-key $API_KEY --api-secret $API_SECRET --team $TEAM \
 --device-type-id $DEVICE_TYPE_IDS --result-dir $RESULT_DIR
 ```
 
-### Starting Tunnel
-
-```
-appurify-tunnel.py --api-key $API_KEY --api-secret $API_SECRET
-```
-
-To provide local/private network environment to your tests, they must be started after tunnel has been established.
-
-### Parameters
-
-- `API_KEY`: Used for authentication
-- `API_SECRET`: Used for authentication
-- `TEAM`: Name or ID of team to act for (optional)
-- `APP_SRC`: The path or URL to the app binary (.ipa or .apk)
-- `TEST_SRC`: The path or URL where the test files are located
-- `TEST_TYPE`: Your test framework name e.g. calabash, ios_robot, ocunit, uiautomation. See [constants.py](https://github.com/appurify/appurify-python/blob/master/appurify/constants.py#L63) for list of supported test types.
-- `DEVICE_TYPE_IDS`: A comma separated list of numbers representing the device type IDs you wish to use for your test
-- `RESULT_DIR`: The directory on your local machine where you want your results to be written.
-
 ### Jenkins Integration
 
 In Jenkins create a new Execute Shell build step and upload your app using the Python wrapper as pictured below.
@@ -77,6 +58,9 @@ Found a bug or want to add a much needed feature? Go for it and send us the Pull
 
 ## Release Notes
 
+### 1.0.0
+- Moved tunnel into its own separate repository
+
 ### 0.5.1
 - Support for teams, using the ```--team``` flag.
 
@@ -84,7 +68,7 @@ Found a bug or want to add a much needed feature? Go for it and send us the Pull
 - Loosen dependency requirements so that future versions of required modules are supported
 
 ### 0.4.9
-- User-abort now handled smoothly if run has not been uploaded to server and runID not generated.  
+- User-abort now handled smoothly if run has not been uploaded to server and runID not generated.
 
 ### 0.4.8
 - An app or test source of size 0 will not be allowed nor uploaded to server.
@@ -106,17 +90,17 @@ Found a bug or want to add a much needed feature? Go for it and send us the Pull
 ### 0.2.9
 - Handle case where test results may not immediately be ready for download after a test completes.
 
-### 0.2.8 
+### 0.2.8
 - Added ```--version``` flag to print version and exit
 
 
 ### 0.2.6
 - Users will receive a warning when attempting to upload a web test without specifying the url parameter.
-- Support for both ```--timeout``` parameter to specify the desired timeout at runtime, or using the os environment variable ```APPURIFY_API_TIMEOUT```. Specify desired timeout in seconds. 
+- Support for both ```--timeout``` parameter to specify the desired timeout at runtime, or using the os environment variable ```APPURIFY_API_TIMEOUT```. Specify desired timeout in seconds.
 
 ### 0.2.2
 
-- Added ```ios_sencharobot``` test type 
+- Added ```ios_sencharobot``` test type
 
 ### 0.2.1
 
