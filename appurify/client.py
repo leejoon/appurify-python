@@ -22,10 +22,12 @@ from . import constants
 from .utils import log, wget
 from .api import *
 
+
 class AppurifyClientError(Exception):
     def __init__(self, message, exit_code=constants.EXIT_CODE_CLIENT_EXCEPTION):
         super(AppurifyClientError, self).__init__(message)
         self.exit_code = exit_code
+
 
 class AppurifyClient(object):
 
@@ -51,7 +53,7 @@ class AppurifyClient(object):
     def refreshAccessToken(self):
         if self.access_token is None:
             api_key = self.args.get('api_key', None)
-            api_secret = self.args.get('api_secret',None)
+            api_secret = self.args.get('api_secret', None)
             if api_key is None or api_secret is None:
                 raise AppurifyClientError("Either access_token or api_key and api_secret are required parameters", exit_code=constants.EXIT_CODE_BAD_TEST)
             log('generating access token...')
@@ -67,27 +69,27 @@ class AppurifyClient(object):
 
     def checkDevice(self):
         response_device_list = devices_list(self.access_token)
-        data_device_list = json.loads(response_device_list.text.replace("'","\"")) 
-        device_id_list =[]
-        
+        data_device_list = json.loads(response_device_list.text.replace("'", "\""))
+        device_id_list = []
+
         for device in data_device_list["response"]:
-            device_id_list.append( device["device_type_id"])
+            device_id_list.append(device["device_type_id"])
 
         if response_device_list.status_code == 200 and self.device_type_id:
             listOfDevices = self.device_type_id.split(',')
             for d in listOfDevices:
-                if int(d) not in device_id_list :
+                if int(d) not in device_id_list:
                     raise AppurifyClientError("Current device list does not include device type: %s" % d, exit_code=constants.EXIT_CODE_DEVICE_NOT_FOUND)
 
     def checkAppCompatibility(self, app_src):
         response_device_list = devices_list(self.access_token)
-        data_device_list = json.loads(response_device_list.text.replace("'","\""))
+        data_device_list = json.loads(response_device_list.text.replace("'", "\""))
 
         reservingDevice = -1
-        
+
         for device in data_device_list["response"]:
             paramListDevices = self.device_type_id.split(',')
-            for d in paramListDevices :
+            for d in paramListDevices:
                 if int(d) == device["device_type_id"]:
                     reservingDevice = device
 
@@ -106,14 +108,14 @@ class AppurifyClient(object):
         webapp_url = self.args.get('url', None)
         if app_src is None and self.test_type in constants.NO_APP_SOURCE:
             if webapp_url is None and app_name is None:
-                log('WARNING: url for this webapp was not passed (using --url parameter). The results for this app will appear under unclassified_app_group in the UI.') 
-                log('    To avoid this issue, please pass the url of the website under test using the --url parameter') 
+                log('WARNING: url for this webapp was not passed (using --url parameter). The results for this app will appear under unclassified_app_group in the UI.')
+                log('    To avoid this issue, please pass the url of the website under test using the --url parameter')
             r = apps_upload(self.access_token, None, 'url', self.test_type, name=app_name, webapp_url=webapp_url)
         else:
             if app_src is None:
                 raise AppurifyClientError("app src is required for test type %s" % self.test_type, exit_code=constants.EXIT_CODE_BAD_TEST)
             app_size = os.path.getsize(app_src)
-            if app_size < 1 :
+            if app_size < 1:
                 raise AppurifyClientError("A valid app must contain some data.  The uploaded app is empty.", exit_code=constants.EXIT_CODE_BAD_TEST)
             if app_src_type != 'url':
                 self.checkAppCompatibility(app_src)
@@ -136,7 +138,7 @@ class AppurifyClient(object):
             raise AppurifyClientError('test_type %s requires a test source' % self.test_type, exit_code=constants.EXIT_CODE_BAD_TEST)
         if test_src:
             test_size = os.path.getsize(test_src)
-            if test_size < 1 :
+            if test_size < 1:
                 raise AppurifyClientError("Test requires something to exist inside test source.  The uploaded source is empty.", exit_code=constants.EXIT_CODE_BAD_TEST)
             if test_src_type != 'url':
                 with open(test_src, 'rb') as test_file_source:
@@ -201,7 +203,7 @@ class AppurifyClient(object):
             for config in configs:
                 if config:
                     found_config = True
-                    print json.dumps(config, sort_keys=True,indent=4, separators=(',', ': '))
+                    print json.dumps(config, sort_keys=True, indent=4, separators=(',', ': '))
             if not found_config:
                 print "Default"
             print "== End device configurations =="
@@ -250,23 +252,24 @@ class AppurifyClient(object):
     def reportTestResult(self, test_status_response):
         log("== reportTestResult ==")
         log(json.dumps(test_status_response))
-        
+
         exit_code = constants.EXIT_CODE_ALL_PASS
         test_response = test_status_response['results']
         result_dir = self.args.get('result_dir', None)
-        
+
         if 'complete_count' in test_status_response:
             response_pass = AppurifyClient.print_multi_test_responses(test_response)
             if result_dir:
                 AppurifyClient.download_multi_test_response(test_response, result_dir, self.verify_ssl)
         else:
             response_pass = AppurifyClient.print_single_test_response(test_response)
-            test_response = [test_response] # make sure test response has the same format in both cases
+            # make sure test response has the same format in both cases
+            test_response = [test_response]
 
             if result_dir:
                 result_url = test_response[0]['url']
                 AppurifyClient.download_test_response(result_url, result_dir, self.verify_ssl)
-        
+
         detailed_status = test_status_response.get('detailed_status')
         if detailed_status == "exception":
             exit_code = self.getExceptionExitCode(test_response)
@@ -275,7 +278,7 @@ class AppurifyClient(object):
         else:
             if not response_pass:
                 exit_code = constants.EXIT_CODE_TEST_FAILURE
-        
+
         return exit_code
 
     def getExceptionExitCode(self, test_response):
@@ -290,7 +293,7 @@ class AppurifyClient(object):
                             exception_code = int(exception_code)
                         except Exception:
                             #if exception code cannot parse into int, means server didn't send correctly.
-                            return  constants.EXIT_CODE_OTHER_EXCEPTION
+                            return constants.EXIT_CODE_OTHER_EXCEPTION
                         if exception_code in constants.EXIT_CODE_EXCEPTION_MAP[key]:
                             return key
                     return constants.EXIT_CODE_OTHER_EXCEPTION
@@ -305,19 +308,19 @@ class AppurifyClient(object):
                 response_text = test_response[response_type] or None
                 response_text = None if type(response_text) in ('unicode', 'str') and response_text.strip() == '' else response_text
                 log("Test %s: %s" % (response_type, response_text))
-    
+
             response_pass = test_response['pass']
             if response_pass:
                 log("All tests passed!")
             else:
                 log("There were test failures")
-    
+
             results_url = test_response['url']
             log("Detailed results url: %s" % results_url)
             return response_pass
         except Exception as e:
             log("Error printing test results: %r" % e)
-    
+
     @staticmethod
     def print_multi_test_responses(test_response):
         response_pass = True
@@ -326,7 +329,7 @@ class AppurifyClient(object):
             AppurifyClient.print_single_test_response(result["results"])
             log("\n")
         return response_pass
-    
+
     @staticmethod
     def download_multi_test_response(test_response, result_dir, verify=True):
         for result in test_response:
@@ -337,7 +340,7 @@ class AppurifyClient(object):
                 AppurifyClient.download_test_response(result_url, device_result_path, verify)
             except Exception as e:
                 log("Error downloading test response: %s" % e)
-    
+
     def main(self):
         """
         See constants for return codes
@@ -351,16 +354,15 @@ class AppurifyClient(object):
                 raise AppurifyClientError("test_type is required")
 
             self.checkDevice()
-            
+
             # upload app/test of use passed id's
             app_id = self.args.get('app_id', None) or self.uploadApp()
             test_id = self.args.get('test_id', None) or self.uploadTest(app_id)
-            
+
             config_src = self.args.get('config_src', False)
             if config_src:
                 self.uploadConfig(test_id, config_src)
 
-            
             # start test run
             test_run_id, queue_timeout_limit, configs = self.runTest(app_id, test_id)
             self.printConfigs(configs)
@@ -369,7 +371,7 @@ class AppurifyClient(object):
             # poll for results and print report
             test_status_response = self.pollTestResult(test_run_id, self.timeout)
             exit_code = self.reportTestResult(test_status_response)
-        
+
         except AppurifyClientError, e:
             log(str(e))
             exit_code = e.exit_code
@@ -384,7 +386,7 @@ class AppurifyClient(object):
             log(str(e))
             exit_code = constants.EXIT_CODE_CONNECTION_ERROR
         except Exception, e:
-            log("%s : %s" % (sys.exc_traceback.tb_lineno , str(e)))
+            log("%s : %s" % (sys.exc_traceback.tb_lineno, str(e)))
             exit_code = constants.EXIT_CODE_CLIENT_EXCEPTION
 
         log('done with exit code %s' % exit_code)
@@ -393,9 +395,10 @@ class AppurifyClient(object):
     @staticmethod
     def execute(action, kwargs, required):
         """Execute a particular action and prints received response."""
-        os.environ['APPURIFY_API_RETRY_ON_FAILURE'] = '0' #disable retries
+        #disable retries
+        os.environ['APPURIFY_API_RETRY_ON_FAILURE'] = '0'
         pp = pprint.PrettyPrinter(indent=4)
-        r = globals()[action](**{k : v for k,v in kwargs.iteritems() if k in required})
+        r = globals()[action](**{k: v for k, v in kwargs.iteritems() if k in required})
         pp.pprint(r.json())
         return 0 if r.status_code == 200 else 1
 
@@ -447,7 +450,7 @@ class AppurifyClient(object):
 
         # (required) access_token || api_key && api_secret
         # (optional) access_token_tag
-        if args.access_token == None and (args.api_key == None or args.api_secret == None):
+        if args.access_token is None and (args.api_key is None or args.api_secret is None):
             parser.error('--access-token OR --api-key and --api-secret is required')
 
         kwargs['test_run_id'] = args.test_run_id
@@ -475,64 +478,67 @@ class AppurifyClient(object):
         # (calculated) app_src_type
         if args.app_id is None and args.app_src is None and args.test_type not in constants.NO_APP_SOURCE:
             parser.error('--app-id OR --app-src is required')
-    
+
         kwargs['app_id'] = args.app_id
         kwargs['app_src'] = args.app_src
-    
+
         if args.app_src:
             if args.app_src[0:4] == 'http':
                 kwargs['app_src_type'] = 'url'
             else:
                 try:
-                    with open(args.app_src) as _: pass
+                    with open(args.app_src) as _:
+                        pass
                     kwargs['app_src_type'] = 'raw'
                 except:
                     parser.error('--app-src %s could not be found' % args.app_src)
-    
+
         # (required) test_id || test_src && test_type
-        if args.test_id == None and (args.test_src == None or args.test_type == None) and args.test_type not in constants.NO_TEST_SOURCE:
+        if args.test_id is None and (args.test_src is None or args.test_type is None) and args.test_type not in constants.NO_TEST_SOURCE:
             parser.error('--test-id OR --test-src and --test-type is required')
-    
+
         kwargs['test_id'] = args.test_id
         kwargs['test_type'] = args.test_type
         kwargs['test_src'] = args.test_src
         if args.test_type not in constants.SUPPORTED_TEST_TYPES:
             parser.error('--test-type must be one of the following: %s' % ', '.join(constants.SUPPORTED_TEST_TYPES))
-    
+
         # (calculated) test_src_type
         if args.test_src:
             if args.test_src[0:4] == 'http':
                 kwargs['test_src_type'] = 'url'
             else:
                 try:
-                    with open(args.test_src) as _: pass
+                    with open(args.test_src) as _:
+                        pass
                     kwargs['test_src_type'] = 'raw'
                 except:
                     parser.error('--test-src %s could not be found' % args.test_src)
 
         # (optional) config_src
-        if args.config_src != None:
+        if args.config_src is not None:
             kwargs['config_src'] = args.config_src
 
         # (required) device_type_id
         kwargs['device_type_id'] = args.device_type_id
-    
+
         # (optional) result_dir
         kwargs['result_dir'] = args.result_dir
-    
+
         # (optional) app name
         kwargs['name'] = args.name
-    
+
         kwargs['url'] = args.url
-    
+
         # (optional) timeout
         try:
             kwargs['timeout_sec'] = int(args.timeout)
         except:
             pass
-    
+
         client = AppurifyClient(**kwargs)
         sys.exit(client.main())
+
 
 def init():
     AppurifyClient.cli()

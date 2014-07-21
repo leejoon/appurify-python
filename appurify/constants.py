@@ -11,7 +11,7 @@
 # Current development version
 # Increment this during development as and when desired
 # setup.py will use this version to generate new releases
-VERSION = (0, 5, 1)
+VERSION = (1, 0, 0)
 __version__ = '.'.join(map(str, VERSION[0:3])) + ''.join(VERSION[3:])
 
 # Last tagged stable version
@@ -58,11 +58,11 @@ EXIT_CODE_OTHER_EXCEPTION = 7       # Test could not execute because of other se
 EXIT_CODE_CLIENT_EXCEPTION = 8      # Test could not execute because of an unexpected error in the client
 EXIT_CODE_CONNECTION_ERROR = 9      # Test got a connection error attempting to reach the server
 EXIT_CODE_APP_INSTALL_FAILED = 10   # The app could not be installed on the device (possibly due to incorrect build)
-EXIT_CODE_INVALID_PROVISION = 11    # Test could not execute because device type is not found in user pool 
+EXIT_CODE_INVALID_PROVISION = 11    # Test could not execute because device type is not found in user pool
 EXIT_CODE_INVALID_DEVICE = 12       # Test could not execute because app is not built for device type
 EXIT_CODE_DEVICE_NOT_FOUND = 13     # Device doesn't exist in users device pool
 EXIT_CODE_APP_INCOMPATIBLE = 14     # Device doesn't exist in users device pool
-EXIT_CODE_GRID_TIMEOUT = 15         # Test reached timeout for grid session 
+EXIT_CODE_GRID_TIMEOUT = 15         # Test reached timeout for grid session
 
 # TODO: Probably should be fetching these from the server at some point
 EXIT_CODE_EXCEPTION_MAP = {EXIT_CODE_TEST_ABORT : [4000, 5000],
@@ -107,16 +107,16 @@ SUPPORTED_TEST_TYPES = [
 ]
 
 NO_TEST_SOURCE = [
-    'ios_robot', 
-    'ios_webrobot', 
-    'browser_test', 
-    'kif', 
-    'kif:google', 
-    'network_headers', 
-    'ios_sencharobot', 
-    'ios_webviewrobot', 
-    'ios_wpt', 
-    'touch_test', 
+    'ios_robot',
+    'ios_webrobot',
+    'browser_test',
+    'kif',
+    'kif:google',
+    'network_headers',
+    'ios_sencharobot',
+    'ios_webviewrobot',
+    'ios_wpt',
+    'touch_test',
     'android_robot',
 ]
 

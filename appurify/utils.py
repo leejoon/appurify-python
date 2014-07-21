@@ -20,15 +20,18 @@ from . import constants
 
 logging.basicConfig(level=logging.WARNING, format='[%(asctime)s] [%(process)d] %(message)s')
 
+
 def log(msg, level=None): # pragma: no cover
     """simple logging facility"""
     logging.log(level if level else logging.WARNING, msg)
 
+
 class AppurifyHttpClientError(Exception):
     pass
 
+
 class AppurifyHttpClient(object):
-    
+
     def __init__(self, method, resource, payload=None, files=None, headers=None):
         self.method_name = method
         self.method = getattr(requests, self.method_name)
@@ -43,30 +46,30 @@ class AppurifyHttpClient(object):
             headers = dict()
         self.headers = headers
         self.headers['User-Agent'] = self.user_agent()
-        
+
         self.retry_count = 0
-    
+
     @staticmethod
     def url(resource): # pragma: no cover
         """(defaults: https://live.appurify.com:443/resource/)
-    
+
         Url can be overridden by specifying following environment variables
         APPURIFY_API_PROTO (default: https)
         APPURIFY_API_HOST (default: live.appurify.com)
         APPURIFY_API_PORT (default: 443)
-    
+
         Clients and Customers MUST not override this unless instructed by Appurify devs
         """
         return '/'.join(['%s://%s:%s/resource' % (AppurifyHttpClient.proto(), AppurifyHttpClient.host(), AppurifyHttpClient.port()), resource]) + '/'
-    
+
     @staticmethod
     def proto():
         return os.environ.get('APPURIFY_API_PROTO', constants.API_PROTO)
-    
+
     @staticmethod
     def host():
         return os.environ.get('APPURIFY_API_HOST', constants.API_HOST)
-    
+
     @staticmethod
     def port():
         return os.environ.get('APPURIFY_API_PORT', str(constants.API_PORT))
@@ -75,7 +78,7 @@ class AppurifyHttpClient(object):
     def user_agent(): # pragma: no cover
         """returns string representation of user-agent"""
         implementation = platform.python_implementation()
-    
+
         if implementation == 'CPython':
             version = platform.python_version()
         elif implementation == 'PyPy':
@@ -86,33 +89,33 @@ class AppurifyHttpClient(object):
             version = platform.python_version()
         else:
             version = 'Unknown'
-    
+
         try:
             system = platform.system()
             release = platform.release()
         except IOError:
             system = 'Unknown'
             release = 'Unknown'
-    
+
         return " ".join([
             'appurify-client/%s' % constants.__version__,
             'python-requests/%s' % requests.__version__,
             '%s/%s' % (implementation, version),
             '%s/%s' % (system, release)
         ])
-    
+
     @staticmethod
     def retry_on_failure():
         return int(os.environ.get('APPURIFY_API_RETRY_ON_FAILURE', constants.API_RETRY_ON_FAILURE))
-    
+
     @staticmethod
     def max_retry():
         return int(os.environ.get('APPURIFY_API_MAX_RETRY', constants.API_MAX_RETRY))
-    
+
     @staticmethod
     def retry_delay():
         return int(os.environ.get('APPURIFY_API_RETRY_DELAY', constants.API_RETRY_DELAY))
-    
+
     @staticmethod
     def api_status():
         """returns api service status from aws status page."""
@@ -126,13 +129,13 @@ class AppurifyHttpClient(object):
             return int(r.text.strip())
         else:
             return constants.API_STATUS_DOWN
-    
+
     @staticmethod
     def wait_for_api_service():
         """waits endlessly until api service is up.
-        
+
         .. todo::
-        
+
             - support timeouts
         """
         n = 1
@@ -144,30 +147,30 @@ class AppurifyHttpClient(object):
             n += 1
         log('API service is back up, resuming...')
         return True
-    
+
     def is_api_response(self, response):
         """detects if response came from api backend or from higher up in the stack."""
         return 'x-api-server-hostname' in response.headers
-    
+
     def kwargs(self):
         """returns kwargs for configured requests method."""
         kwargs = dict()
-        
+
         key = 'params' if self.method_name == 'get' else 'data'
         kwargs[key] = self.payload
-        
+
         kwargs['headers'] = self.headers
         kwargs['verify'] = False
-        
+
         if self.files:
             kwargs['files'] = self.files
-        
+
         return kwargs
-    
+
     def start(self):
         self.retry_count += 1
         log("HTTP %s %s" % (self.method_name.upper(), self.url))
-        
+
         try:
             response = self.method(self.url, **self.kwargs())
             if self.is_api_response(response):
@@ -191,22 +194,25 @@ class AppurifyHttpClient(object):
                 return self.retry_or_raise(AppurifyHttpClientError('API failure with reason %s' % str(e)))
             else:
                 raise e
-    
+
     def retry_or_raise(self, exc):
         if self.retry_on_failure() and self.retry_count < self.max_retry():
             time.sleep(int(math.pow(2, self.retry_count)))
             return self.start()
         raise exc
 
+
 def get(resource, params): # pragma: no cover
     """make a HTTP GET request on API endpoint"""
     client = AppurifyHttpClient('get', resource, params)
     return client.start()
 
+
 def post(resource, data, files=None): # pragma: no cover
     """make a HTTP POST request on API endpoint"""
     client = AppurifyHttpClient('post', resource, data, files=files)
     return client.start()
+
 
 def wget(url, path, verify=True): # pragma: no cover
     """Download a file to specified path"""
