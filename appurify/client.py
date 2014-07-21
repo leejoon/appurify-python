@@ -55,7 +55,8 @@ class AppurifyClient(object):
             if api_key is None or api_secret is None:
                 raise AppurifyClientError("Either access_token or api_key and api_secret are required parameters", exit_code=constants.EXIT_CODE_BAD_TEST)
             log('generating access token...')
-            r = access_token_generate(api_key, api_secret)
+            team = self.args.get('team')
+            r = access_token_generate(api_key, api_secret, team=team)
             if r.status_code == 200:
                 access_token = r.json()['response']['access_token']
                 log('access_token_generate success, access_token:%s' % access_token)
@@ -143,7 +144,7 @@ class AppurifyClient(object):
             else:
                 r = tests_upload(self.access_token, test_src, test_src_type, self.test_type, app_id=app_id)
         elif self.test_type in constants.NO_TEST_SOURCE:
-            r = tests_upload(self.access_token, None, 'url', self.test_type)
+            r = tests_upload(self.access_token, None, 'url', self.test_type, app_id=app_id)
         if r.status_code == 200:
             test_id = r.json()['response']['test_id']
             log('tests_upload success, test_id:%s' % test_id)
@@ -407,6 +408,7 @@ class AppurifyClient(object):
 
         parser.add_argument('--api-key', help='Appurify developer key')
         parser.add_argument('--api-secret', help='Appurify developer secret')
+        parser.add_argument('--team', help="Act on behalf of a team")
         parser.add_argument('--access-token-tag', action='append', help='colon separated key:value tag for access_token to be generated')
         parser.add_argument('--access-token', help='Use an existing access token instead of generating a new one')
 
@@ -451,6 +453,7 @@ class AppurifyClient(object):
         kwargs['test_run_id'] = args.test_run_id
         kwargs['api_key'] = args.api_key
         kwargs['api_secret'] = args.api_secret
+        kwargs['team'] = args.team
         kwargs['access_token'] = args.access_token
         kwargs['access_token_tag'] = args.access_token_tag
         kwargs['disable_ssl_check'] = args.disable_ssl_check

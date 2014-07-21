@@ -5,7 +5,7 @@ The official Python client for the [Appurify](http://www.appurify.com) API.
 ### Installation
 
 ```
-pip install appurify-0.5.0.tar.gz
+pip install appurify-0.5.1.tar.gz
 ```
 
 This will install any missing dependencies and add two executable scripts to your bin folder:
@@ -18,7 +18,7 @@ $ appurify-tunnel.py -h
 ### Running Tests
 
 ```
-appurify-client.py --api-key $API_KEY --api-secret $API_SECRET \
+appurify-client.py --api-key $API_KEY --api-secret $API_SECRET --team $TEAM \
 --app-src $APP-SRC --app-test-type $TEST_TYPE --test-src $TEST_SRC --test-type $TEST_TYPE \
 --device-type-id $DEVICE_TYPE_IDS --result-dir $RESULT_DIR
 ```
@@ -35,6 +35,7 @@ To provide local/private network environment to your tests, they must be started
 
 - `API_KEY`: Used for authentication
 - `API_SECRET`: Used for authentication
+- `TEAM`: Name or ID of team to act for (optional)
 - `APP_SRC`: The path or URL to the app binary (.ipa or .apk)
 - `TEST_SRC`: The path or URL where the test files are located
 - `TEST_TYPE`: Your test framework name e.g. calabash, ios_robot, ocunit, uiautomation. See [constants.py](https://github.com/appurify/appurify-python/blob/master/appurify/constants.py#L63) for list of supported test types.
@@ -76,6 +77,9 @@ Found a bug or want to add a much needed feature? Go for it and send us the Pull
 
 ## Release Notes
 
+### 0.5.1
+- Support for teams, using the ```--team``` flag.
+
 ### 0.5.0
 - Loosen dependency requirements so that future versions of required modules are supported
 
@@ -83,7 +87,7 @@ Found a bug or want to add a much needed feature? Go for it and send us the Pull
 - User-abort now handled smoothly if run has not been uploaded to server and runID not generated.  
 
 ### 0.4.8
-- An app or test srouce of size 0 will not be allowed nor uploaded to server.
+- An app or test source of size 0 will not be allowed nor uploaded to server.
 
 ### 0.4.5
 - Bug fix of multiple devices trying when downloading results flag passed would fail.
