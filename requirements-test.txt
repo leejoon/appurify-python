@@ -5,3 +5,4 @@ paramiko>=1.12.2
 pycrypto>=2.6.1
 tox>=1.6.1
 mock
+urllib3>=2.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
