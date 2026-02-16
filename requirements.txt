@@ -1,3 +1,4 @@
 requests>=2.2.1
 paramiko>=1.12.2
 
+cryptography>=46.0.5 # not directly required, pinned by Snyk to avoid a vulnerability
